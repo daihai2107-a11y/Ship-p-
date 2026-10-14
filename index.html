@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GHN Express - Cổng Shop & Quản Lý Đơn</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { ghn: { orange: '#FA5400', dark: '#002D62', hover: '#D94800' } }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 pb-12">
+
+    <!-- Header -->
+    <header class="bg-ghn-dark text-white sticky top-0 z-50 shadow-md">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+            <span class="font-extrabold text-ghn-orange text-base md:text-lg tracking-wider">GHN <span class="text-white">PORTAL</span></span>
+            <div class="flex space-x-1 md:space-x-2 items-center">
+                <button onclick="switchTab('shop')" id="btn-shop" class="px-3 py-1.5 rounded-lg font-bold text-xs md:text-sm bg-ghn-orange text-white transition">Tạo Đơn</button>
+                <button onclick="switchTab('admin')" id="btn-admin" class="px-3 py-1.5 rounded-lg font-bold text-xs md:text-sm bg-gray-800 text-gray-300 transition">Quản Lý (<span id="order-count">0</span>)</button>
+                <a href="tracking.html" target="_blank" class="px-3 py-1.5 rounded-lg font-bold text-xs md:text-sm bg-blue-600 text-white transition ml-2">Tra Cứu <i class="fa-solid fa-external-link-alt ml-1"></i></a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto p-4 md:p-6 space-y-6">
+
+        <!-- TAB 1: TẠO ĐƠN HÀNG -->
+        <div id="tab-shop" class="space-y-6">
+            <div class="bg-white p-5 md:p-8 rounded-2xl shadow-sm space-y-4">
+                <h2 class="text-xl font-bold text-ghn-dark border-b pb-3"><i class="fa-solid fa-cart-plus text-ghn-orange mr-2"></i>Tạo Đơn Hàng Mới</h2>
+                
+                <form onsubmit="createOrder(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Tên Chủ Shop</label>
+                        <input type="text" id="shop-name" required class="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-ghn-orange" placeholder="Ví dụ: Shop Quần Áo A">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold mb-1">Tên Người Nhận</label>
+                            <input type="text" id="rec-name" required class="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-ghn-orange" placeholder="Nguyễn Văn B">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-1">SĐT Người Nhận</label>
+                            <input type="tel" id="rec-phone" required class="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-ghn-orange" placeholder="0987654321">
+                        </div>
+                    </div>
+
+                    <!-- CHỌN ĐỊA CHỈ 3 CẤP -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-sm font-semibold mb-1">Tỉnh / Thành Phố</label>
+                            <select id="select-province" onchange="loadDistricts()" required class="w-full px-3 py-2.5 border rounded-xl outline-none bg-white text-sm focus:border-ghn-orange">
+                                <option value="">-- Chọn Tỉnh/Thành --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-1">Quận / Huyện</label>
+                            <select id="select-district" onchange="loadWards()" required class="w-full px-3 py-2.5 border rounded-xl outline-none bg-white text-sm focus:border-ghn-orange">
+                                <option value="">-- Chọn Quận/Huyện --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-1">Phường / Xã</label>
+                            <select id="select-ward" required class="w-full px-3 py-2.5 border rounded-xl outline-none bg-white text-sm focus:border-ghn-orange">
+                                <option value="">-- Chọn Phường/Xã --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Số nhà / Tên đường cụ thể</label>
+                        <input type="text" id="rec-street" required class="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-ghn-orange" placeholder="Ví dụ: Số 10 Đại Cồ Việt">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Tiền COD (VNĐ)</label>
+                        <input type="number" id="order-cod" value="150000" required class="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-ghn-orange">
+                    </div>
+
+                    <button type="submit" class="w-full bg-ghn-orange text-white py-3.5 rounded-xl font-bold shadow hover:bg-ghn-hover transition text-base">
+                        LƯU VÀ TẠO ĐƠN HÀNG
+                    </button>
+                </form>
+            </div>
+
+            <!-- HỘP THÔNG BÁO VỪA TẠO XONG -->
+            <div id="success-box" class="hidden bg-white p-5 rounded-2xl shadow-sm space-y-3 border-2 border-green-500">
+                <h3 class="font-bold text-green-600 text-base"><i class="fa-solid fa-circle-check mr-1"></i> Tạo đơn thành công!</h3>
+                <p class="text-sm text-gray-600">Mã vận đơn của khách: <b id="new-id" class="text-ghn-orange font-bold text-lg"></b></p>
+                <div class="flex space-x-2 pt-1">
+                    <input type="text" id="share-link" readonly class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs font-mono text-blue-600">
+                    <button onclick="copyLink()" class="bg-ghn-dark text-white px-4 py-2 rounded-xl font-bold text-xs shrink-0">Copy Link Gửi Khách</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: QUẢN LÝ & CẬP NHẬT TRẠNG THÁI (ADMIN) -->
+        <div id="tab-admin" class="space-y-6 hidden">
+            <div class="bg-white p-5 md:p-6 rounded-2xl shadow-sm space-y-4">
+                <div class="flex justify-between items-center border-b pb-3">
+                    <h2 class="text-xl font-bold text-ghn-dark"><i class="fa-solid fa-sliders text-ghn-orange mr-2"></i>Quản Lý & Đổi Trạng Thái Đơn</h2>
+                    <button onclick="renderOrders()" class="bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-xl text-xs font-bold transition"><i class="fa-solid fa-rotate mr-1"></i> Làm mới</button>
+                </div>
+
+                <div id="orders-container" class="space-y-4">
+                    <!-- Danh sách đơn hàng -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        let orders = JSON.parse(localStorage.getItem('ghn_shared_orders')) || [
+            { id: 'GHN888888', shopName: 'Shop Mẫu', receiverName: 'Trần Văn Khách', receiverPhone: '0912345678', receiverAddress: 'Số 12 Nguyễn Trãi, Phường Thượng Đình, Quận Thanh Xuân, Hà Nội', cod: 200000, status: 'Chờ lấy hàng', location: 'Đã tiếp nhận đơn hàng, chờ bưu tá', timestamp: '15/10/2026 00:00' }
+        ];
+
+        updateBadgeCount();
+
+        window.addEventListener('DOMContentLoaded', () => {
+            fetch('https://provinces.open-api.vn/api/?depth=1')
+                .then(res => res.json())
+                .then(data => {
+                    const provinceSelect = document.getElementById('select-province');
+                    data.forEach(p => {
+                        const opt = document.createElement('option');
+                        opt.value = p.code;
+                        opt.textContent = p.name;
+                        provinceSelect.appendChild(opt);
+                    });
+                }).catch(e => console.log('Không tải được danh sách tỉnh thành'));
+        });
+
+        function loadDistricts() {
+            const provinceCode = document.getElementById('select-province').value;
+            const districtSelect = document.getElementById('select-district');
+            const wardSelect = document.getElementById('select-ward');
+            
+            districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+            wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+
+            if(!provinceCode) return;
+
+            fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`)
+                .then(res => res.json())
+                .then(data => {
+                    data.districts.forEach(d => {
+                        const opt = document.createElement('option');
+                        opt.value = d.code;
+                        opt.textContent = d.name;
+                        districtSelect.appendChild(opt);
+                    });
+                });
+        }
+
+        function loadWards() {
+            const districtCode = document.getElementById('select-district').value;
+            const wardSelect = document.getElementById('select-ward');
+            
+            wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+
+            if(!districtCode) return;
+
+            fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`)
+                .then(res => res.json())
+                .then(data => {
+                    data.wards.forEach(w => {
+                        const opt = document.createElement('option');
+                        opt.value = w.name;
+                        opt.textContent = w.name;
+                        wardSelect.appendChild(opt);
+                    });
+                });
+        }
+
+        function switchTab(tab) {
+            document.getElementById('tab-shop').classList.toggle('hidden', tab !== 'shop');
+            document.getElementById('tab-admin').classList.toggle('hidden', tab !== 'admin');
+            
+            document.getElementById('btn-shop').className = tab === 'shop' ? 'px-3 py-1.5 rounded-lg font-bold text-xs md:text-sm bg-ghn-orange text-white transition' : 'px-3 py-1.5 rounded-lg font-bold text-xs md:text-sm bg-gray-800 text-gray-300 transition';
+            document.getElementById('btn-admin').className = tab === 'admin' ? 'px-3 py-1.5 rounded-lg font-bold text-xs md:text-sm bg-ghn-orange text-white transition' : 'px-3 py-1.5 rounded-lg font-bold text-xs md:text-sm bg-gray-800 text-gray-300 transition';
+            
+            if(tab === 'admin') renderOrders();
+        }
+
+        function createOrder(e) {
+            e.preventDefault();
+            
+            const street = document.getElementById('rec-street').value;
+            const ward = document.getElementById('select-ward').value;
+            const districtSelect = document.getElementById('select-district');
+            const district = districtSelect.options[districtSelect.selectedIndex].text;
+            const provinceSelect = document.getElementById('select-province');
+            const province = provinceSelect.options[provinceSelect.selectedIndex].text;
+
+            const fullAddress = `${street}, ${ward}, ${district}, ${province}`;
+
+            const newOrder = {
+                id: 'GHN' + Math.floor(100000 + Math.random() * 900000),
+                shopName: document.getElementById('shop-name').value,
+                receiverName: document.getElementById('rec-name').value,
+                receiverPhone: document.getElementById('rec-phone').value,
+                receiverAddress: fullAddress,
+                cod: Number(document.getElementById('order-cod').value),
+                status: 'Chờ lấy hàng',
+                location: 'Đã tạo đơn hàng thành công, chờ bưu tá qua lấy',
+                timestamp: new Date().toLocaleString('vi-VN')
+            };
+
+            orders.unshift(newOrder);
+            saveAndSync();
+
+            const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+            const trackingUrl = (baseUrl.includes('http') ? baseUrl : 'https://daihan246.github.io/') + 'tracking.html?id=' + newOrder.id;
+
+            document.getElementById('new-id').innerText = newOrder.id;
+            document.getElementById('share-link').value = trackingUrl;
+            document.getElementById('success-box').classList.remove('hidden');
+            document.getElementById('success-box').scrollIntoView({ behavior: 'smooth' });
+
+            e.target.reset();
+            document.getElementById('select-district').innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+            document.getElementById('select-ward').innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+            updateBadgeCount();
+        }
+
+        function renderOrders() {
+            const container = document.getElementById('orders-container');
+            if (orders.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-400 py-6">Chưa có đơn hàng nào.</p>`;
+                return;
+            }
+
+            container.innerHTML = orders.map(o => `
+                <div class="bg-gray-50 border border-gray-200 p-4 rounded-xl space-y-3">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-xs font-bold text-gray-400">Mã vận đơn:</span>
+                            <h4 class="font-extrabold text-ghn-orange text-base">${o.id}</h4>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold ${o.status === 'Giao thành công' ? 'bg-green-100 text-green-800' : (o.status === 'Đang giao hàng' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800')}">${o.status}</span>
+                    </div>
+
+                    <div class="text-xs space-y-1 text-gray-600">
+                        <p><b>Shop:</b> ${o.shopName}</p>
+                        <p><b>Người nhận:</b> ${o.receiverName} (${o.receiverPhone})</p>
+                        <p><b>Địa chỉ:</b> ${o.receiverAddress}</p>
+                        <p><b>COD:</b> <span class="font-bold text-gray-900">${o.cod.toLocaleString()} đ</span></p>
+                        
+                        <div class="pt-1 space-y-1">
+                            <label class="font-bold text-gray-700 block">Vị trí / Hành trình hiển thị cho khách:</label>
+                            <input type="text" id="loc-${o.id}" value="${o.location}" class="w-full px-3 py-2 border rounded-lg bg-white text-gray-800 font-medium text-xs">
+                        </div>
+
+                        <div class="pt-1 space-y-1">
+                            <label class="font-bold text-gray-700 block">Thời gian cập nhật (có thể sửa tuỳ ý):</label>
+                            <input type="text" id="time-${o.id}" value="${o.timestamp}" class="w-full px-3 py-2 border rounded-lg bg-white text-gray-800 font-medium text-xs">
+                        </div>
+                    </div>
+
+                    <div class="pt-2 border-t flex flex-wrap gap-2 items-center justify-between">
+                        <div class="space-x-1">
+                            <button onclick="updateOrderStatus('${o.id}', 'Chờ lấy hàng')" class="px-2.5 py-1 bg-yellow-500 text-white rounded-lg text-xs font-bold hover:bg-yellow-600">Chờ lấy</button>
+                            <button onclick="updateOrderStatus('${o.id}', 'Đang giao hàng')" class="px-2.5 py-1 bg-blue-500 text-white rounded-lg text-xs font-bold hover:bg-blue-600">Đang giao</button>
+                            <button onclick="updateOrderStatus('${o.id}', 'Giao thành công')" class="px-2.5 py-1 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600">Thành công</button>
+                        </div>
+                        <button onclick="deleteOrder('${o.id}')" class="text-red-500 hover:text-red-700 text-xs font-bold p-1"><i class="fa-solid fa-trash"></i> Xóa</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateOrderStatus(id, newStatus) {
+            const locInput = document.getElementById(`loc-${id}`);
+            const timeInput = document.getElementById(`time-${id}`);
+            
+            const newLoc = locInput ? locInput.value : 'Cập nhật trạng thái';
+            const newTime = timeInput ? timeInput.value : new Date().toLocaleString('vi-VN');
+            
+            const idx = orders.findIndex(o => o.id === id);
+            if(idx !== -1) {
+                orders[idx].status = newStatus;
+                orders[idx].location = newLoc;
+                orders[idx].timestamp = newTime;
+                saveAndSync();
+                renderOrders();
+                alert(`Đã cập nhật đơn ${id} thành công! Khách vào tra cứu sẽ thấy ngay trạng thái và mốc thời gian mới.`);
+            }
+        }
+
+        function deleteOrder(id) {
+            if(confirm('Bạn có chắc muốn xóa đơn này không?')) {
+                orders = orders.filter(o => o.id !== id);
+                saveAndSync();
+                renderOrders();
+                updateBadgeCount();
+            }
+        }
+
+        function saveAndSync() {
+            localStorage.setItem('ghn_shared_orders', JSON.stringify(orders));
+        }
+
+        function updateBadgeCount() {
+            document.getElementById('order-count').innerText = orders.length;
+        }
+
+        function copyLink() {
+            const input = document.getElementById('share-link');
+            input.select();
+            navigator.clipboard.writeText(input.value);
+            alert('Đã copy đường dẫn gửi khách!');
+        }
+    </script>
+</body>
+</html>
